@@ -4,61 +4,73 @@
  */
 package projecte;
 
-/**
- *
- * @author DAM
- */
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
 public class servidor {
-    public static ArrayList<PrintWriter> clientes;
+    public static ArrayList<ClientHandler> clientes;
+
     public static void main(String[] args) {
         int port = 12345;
-        ServerSocket servidor = null;
+        ServerSocket servidor2 = null;
         Socket socketClient = null;
-        clientes = new ArrayList<PrintWriter>();
+        clientes = new ArrayList<ClientHandler>();
+
         try {
-            
-            servidor = new ServerSocket(port);
-            System.out.println("El servidor està escoltant al port: " + port);
-            
+            servidor2 = new ServerSocket(port);
+            System.out.println("El servidor está escuchando en el puerto: " + port);
+
             while (true) {
-                
-                socketClient = servidor.accept();
-                System.out.println("Un nou client s'ha connectat: " + socketClient.getInetAddress().getHostAddress());
-                
+                socketClient = servidor2.accept();
+                System.out.println("Un nuevo cliente se ha conectado: " + socketClient.getInetAddress().getHostAddress());
+
                 ClientHandler clientHandler = new ClientHandler(socketClient);
                 PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
-                clientes.add(out);
+                clientes.add(clientHandler);
                 new Thread(clientHandler).start();
             }
         } catch (IOException e) {
-            System.out.println("Error en establir la connexió: " + e.getMessage());
+            System.out.println("Error en establecer la conexión: " + e.getMessage());
         } finally {
             try {
-                servidor.close();
+                servidor2.close();
             } catch (IOException e) {
-                System.out.println("Error en tancar el servidor: " + e.getMessage());
+                System.out.println("Error en cerrar el servidor: " + e.getMessage());
             }
         }
     }
-    
-    
+
+    public servidor() {
+        clientes = new ArrayList<ClientHandler>();
+    }
+
+    public ClientHandler getClientHandler(PrintWriter out) {
+        for (ClientHandler clientHandler : clientes) {
+            if (clientHandler.out.equals(out)) {
+                return clientHandler;
+            }
+        }
+        return null;
+    }
 }
 
 class ClientHandler implements Runnable {
     private Socket socketClient;
     private String nomClient;
     private BufferedReader in;
-    private PrintWriter out;
-    private servidor server;
+    public PrintWriter out;
+    public servidor server;
     
     
     public ClientHandler(Socket socketClient) {
         this.socketClient = socketClient;
     }
+    
+    public ClientHandler(Socket socketClient, servidor server) {
+    this.socketClient = socketClient;
+    this.server = server;
+}
     
     @Override
     public void run() {
@@ -78,29 +90,32 @@ class ClientHandler implements Runnable {
                     break;
                 }
                 if (inputLine.startsWith("/privat")) {
-                    // Processar missatges privats
-                    String[] missatge = inputLine.split(" ");
-                    String desti = missatge[1];
-                    String text = inputLine.substring(inputLine.indexOf(desti) + desti.length() + 1);
-                    text = "[" + nomClient + "] (privat): " + text;
-                    ClientHandler clientDesti = null;
-                    for (PrintWriter clientOut : server.clientes) {
-                        if (clientOut != out) {
-                            String text2 = "[" + nomClient + "]: " + inputLine;
-                            clientOut.println(text2);
+                    String[] tokens = inputLine.split(" ", 3);
+                    if (tokens.length == 3) {
+                        String desti = tokens[1];
+                        String missatge = tokens[2];
+                        boolean destinatariTrobat = false;
+                        for (ClientHandler client : server.clientes) {
+                            if (client != this && client.out != null && client.nomClient.equals(desti)) {
+                                client.out.println("[PRIVAT][" + nomClient + "]: " + missatge);
+                                out.println("[PRIVAT][" + nomClient + "]: " + missatge);
+                                destinatariTrobat = true;
+                                break;
+                            }
+                        }
+                        if (!destinatariTrobat) {
+                            out.println("No s'ha trobat l'usuari " + desti);
                         }
                     }
-                    if (clientDesti != null) {
-                        clientDesti.out.println(text);
-                        out.println(text);
-                    } else {
-                        out.println("No s'ha trobat l'usuari " + desti);
-                    }
                 } else {
-                    // Enviar missatges a la sala de xat
-                    String text = "[" + nomClient + "]: " + inputLine;
-		    for (PrintWriter client : server.clientes) {
-                            out.println(text);
+                    for (ClientHandler client : server.clientes) {
+                        if(client.nomClient == null){
+                            
+                        }else{
+                            String text2 = "[" + nomClient + "]: " + inputLine;
+                            client.out.println(text2);
+                        }
+                        
                     }
                 }
             }
