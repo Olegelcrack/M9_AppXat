@@ -17,7 +17,7 @@ public class client {
     private PrintWriter out;
 
     public static void main(String[] args) {
-        String host = "localhost";
+        String host = "192.168.1.116";
         int port = 12345;
         client clientXat = new client();
         clientXat.run(host, port);
