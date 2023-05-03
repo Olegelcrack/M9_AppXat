@@ -14,7 +14,7 @@ import java.net.*;
 public class client {
     private String nomClient;
     private BufferedReader in;
-    private PrintWriter out;
+    public static PrintWriter out;
 
     public static void main(String[] args) {
         String host = "192.168.1.116";
@@ -52,7 +52,7 @@ public class client {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String inputLine;
             while ((inputLine = br.readLine()) != null) {
-                if (inputLine.equals("fi")) {
+                if (inputLine.equals("/e")) {
                     break;
                 }
                 out.println(inputLine);
