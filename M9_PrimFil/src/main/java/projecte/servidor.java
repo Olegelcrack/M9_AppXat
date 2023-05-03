@@ -87,7 +87,7 @@ class ClientHandler implements Runnable {
             
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
-                if (inputLine.equals("fi")) {
+                if (inputLine.equals("exit")) {
                     break;
                 }
                 if (inputLine.startsWith("/p")) {
@@ -137,9 +137,13 @@ class ClientHandler implements Runnable {
                     }
                 
             }
-            
+            for (ClientHandler client : server.clientes) {
+                if(!client.nomClient.equals(nomClient)){
+                    client.out.println("El client " + nomClient + " s'ha desconnectat.");
+                }
+            }
             System.out.println("El client " + nomClient + " s'ha desconnectat.");
-            out.println("Fi de la sessió.");
+            out.println("Fi de la sessio.");
             
             socketClient.close();
         } catch (IOException e) {
