@@ -6,8 +6,18 @@ package projecte;
 
 import java.io.*;
 import java.net.*;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.StringJoiner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 
 public class servidor {
     public static ArrayList<ClientHandler> clientes;
@@ -62,6 +72,7 @@ class ClientHandler implements Runnable {
     private BufferedReader in;
     public PrintWriter out;
     public servidor server;
+    private SecretKey clau;
     
     
     public ClientHandler(Socket socketClient) {
@@ -79,10 +90,11 @@ class ClientHandler implements Runnable {
             
             in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
             out = new PrintWriter(socketClient.getOutputStream(), true);
-            
+            clau = generarClave();
             out.println("Benvingut a la sala de xat!");
             out.println("Introdueixi el seu nom:");
-            nomClient = in.readLine();
+            String missatgeDesxifrat = descifrarMensaje(in.readLine().getBytes(), clau);
+            nomClient = missatgeDesxifrat;
             out.println("Hola " + nomClient + "! Comenca la conversa.");
             
             String inputLine;
@@ -148,6 +160,24 @@ class ClientHandler implements Runnable {
             socketClient.close();
         } catch (IOException e) {
             System.out.println("Error en establir la connexió: " + e.getMessage());
-        }
+        } catch (NoSuchAlgorithmException ex) {
+            Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+                        System.out.println("Error en desxifrar el missatge: " + e.getMessage());
+                    }
+    }
+    
+    private String descifrarMensaje(byte[] mensajeCifrado, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+
+        Cipher descifrador = Cipher.getInstance("AES");
+        descifrador.init(Cipher.DECRYPT_MODE, clave);
+        byte[] mensajeDescifrado = descifrador.doFinal(mensajeCifrado);
+        return new String(mensajeDescifrado);
+    }
+    
+    private SecretKey generarClave() throws NoSuchAlgorithmException {
+        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+        keyGen.init(128);
+        return keyGen.generateKey();
     }
 }

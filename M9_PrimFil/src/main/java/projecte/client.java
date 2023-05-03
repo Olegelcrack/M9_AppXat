@@ -43,7 +43,7 @@ public class client {
             out = new PrintWriter(socket.getOutputStream(), true);
 
            
-
+            clau = generarClave();
             // Iniciar thread per llegir els missatges del servidor
             new Thread(new Runnable() {
                 @Override
@@ -52,7 +52,7 @@ public class client {
                         String inputLine;
                         while ((inputLine = in.readLine()) != null) {
                             // Desxifrar el missatge rebu amb la clau generada
-                            String missatgeDesxifrat = descifrarMensaje(inputLine.getBytes(), clau);
+                            String missatgeDesxifrat = descifrarMensaje(inputLine,inputLine.getBytes(), clau);
                             System.out.println(missatgeDesxifrat);
                         }
                     } catch (IOException e) {
@@ -88,11 +88,15 @@ public class client {
         }
     }
     
-    private String descifrarMensaje(byte[] mensajeCifrado, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Cipher descifrador = Cipher.getInstance("AES");
-        descifrador.init(Cipher.DECRYPT_MODE, clave);
-        byte[] mensajeDescifrado = descifrador.doFinal(mensajeCifrado);
-        return new String(mensajeDescifrado);
+    private String descifrarMensaje(String inputLine,byte[] mensajeCifrado, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        try{
+            Cipher descifrador = Cipher.getInstance("AES");
+            descifrador.init(Cipher.DECRYPT_MODE, clave);
+            byte[] mensajeDescifrado = descifrador.doFinal(mensajeCifrado);
+            return new String(mensajeDescifrado);
+        }catch(Exception e){
+            return inputLine;
+        }
     }
     
     private byte[] cifrarMensaje(String mensaje, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
