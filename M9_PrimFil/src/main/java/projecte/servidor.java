@@ -7,6 +7,7 @@ package projecte;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.StringJoiner;
 
 public class servidor {
     public static ArrayList<ClientHandler> clientes;
@@ -57,7 +58,7 @@ public class servidor {
 
 class ClientHandler implements Runnable {
     private Socket socketClient;
-    private String nomClient;
+    public String nomClient;
     private BufferedReader in;
     public PrintWriter out;
     public servidor server;
@@ -89,7 +90,7 @@ class ClientHandler implements Runnable {
                 if (inputLine.equals("fi")) {
                     break;
                 }
-                if (inputLine.startsWith("/privat")) {
+                if (inputLine.startsWith("/p")) {
                     String[] tokens = inputLine.split(" ", 3);
                     if (tokens.length == 3) {
                         String desti = tokens[1];
@@ -107,17 +108,34 @@ class ClientHandler implements Runnable {
                             out.println("No s'ha trobat l'usuari " + desti);
                         }
                     }
-                } else {
+                } else if(inputLine.startsWith("/g")){
                     for (ClientHandler client : server.clientes) {
                         if(client.nomClient == null){
                             
                         }else{
-                            String text2 = "[" + nomClient + "]: " + inputLine;
-                            client.out.println(text2);
+                            String[] tokens = inputLine.split(" ", 2);
+                            if (tokens.length == 2) {
+                                String text2 = "[" + nomClient + "]: " + tokens[1];
+                                client.out.println(text2);
+                            }
                         }
                         
                     }
-                }
+                } else if(inputLine.startsWith("/u")){
+                    StringJoiner joiner = new StringJoiner(", ");
+                    for (ClientHandler client : server.clientes) {
+                        if(client.nomClient == null){
+                            
+                        }else{
+                                joiner.add(client.nomClient);
+                                
+                                
+                        }
+                    }
+                    out.println("Clients Conectats: " + joiner);
+                        
+                    }
+                
             }
             
             System.out.println("El client " + nomClient + " s'ha desconnectat.");
