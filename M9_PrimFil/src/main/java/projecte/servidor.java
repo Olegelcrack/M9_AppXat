@@ -14,16 +14,16 @@ public class servidor {
 
     public static void main(String[] args) {
         int port = 12345;
-        ServerSocket servidor2 = null;
+        ServerSocket servidor = null;
         Socket socketClient = null;
         clientes = new ArrayList<ClientHandler>();
 
         try {
-            servidor2 = new ServerSocket(port);
+            servidor = new ServerSocket(port);
             System.out.println("El servidor está escuchando en el puerto: " + port);
 
             while (true) {
-                socketClient = servidor2.accept();
+                socketClient = servidor.accept();
                 System.out.println("Un nuevo cliente se ha conectado: " + socketClient.getInetAddress().getHostAddress());
 
                 ClientHandler clientHandler = new ClientHandler(socketClient);
@@ -35,7 +35,7 @@ public class servidor {
             System.out.println("Error en establecer la conexión: " + e.getMessage());
         } finally {
             try {
-                servidor2.close();
+                servidor.close();
             } catch (IOException e) {
                 System.out.println("Error en cerrar el servidor: " + e.getMessage());
             }

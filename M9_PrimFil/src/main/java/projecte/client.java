@@ -53,7 +53,7 @@ public class client {
                         while ((inputLine = in.readLine()) != null) {
                             // Desxifrar el missatge rebu amb la clau generada
                             String missatgeDesxifrat = descifrarMensaje(inputLine.getBytes(), clau);
-                            System.out.println(missatgeDesxifrat);
+                            System.out.println(inputLine);
                         }
                     } catch (IOException e) {
                         System.out.println("Error en llegir els missatges del servidor: " + e.getMessage());
@@ -73,7 +73,7 @@ public class client {
 
                 // Xifrar el missatge amb la clau generada abans d'enviar-lo
                 byte[] missatgeXifrat = cifrarMensaje(inputLine, clau);
-                out.println(new String(missatgeXifrat));
+                out.println(inputLine);
             }
 
             // Tancar la connexió
