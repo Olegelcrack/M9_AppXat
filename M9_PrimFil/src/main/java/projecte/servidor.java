@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package projecte;
 
 import java.io.*;
@@ -20,44 +17,44 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 public class servidor {
-    public static ArrayList<ClientHandler> clientes;
+    public static ArrayList<ClientHandler> clients;
 
     public static void main(String[] args) {
         int port = 12345;
         ServerSocket servidor2 = null;
         Socket socketClient = null;
-        clientes = new ArrayList<ClientHandler>();
+        clients = new ArrayList<ClientHandler>();
 
         try {
             servidor2 = new ServerSocket(port);
-            System.out.println("El servidor está escuchando en el puerto: " + port);
+            System.out.println("El servidor está escoltant en el port: " + port);
 
             while (true) {
                 socketClient = servidor2.accept();
-                System.out.println("Un nuevo cliente se ha conectado: " + socketClient.getInetAddress().getHostAddress());
+                System.out.println("Un nou client s'ha conectat: " + socketClient.getInetAddress().getHostAddress());
 
                 ClientHandler clientHandler = new ClientHandler(socketClient);
                 PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
-                clientes.add(clientHandler);
+                clients.add(clientHandler);
                 new Thread(clientHandler).start();
             }
         } catch (IOException e) {
-            System.out.println("Error en establecer la conexión: " + e.getMessage());
+            System.out.println("Error en establir la connexió: " + e.getMessage());
         } finally {
             try {
                 servidor2.close();
             } catch (IOException e) {
-                System.out.println("Error en cerrar el servidor: " + e.getMessage());
+                System.out.println("Error en tarcar el servidor: " + e.getMessage());
             }
         }
     }
 
     public servidor() {
-        clientes = new ArrayList<ClientHandler>();
+        clients = new ArrayList<ClientHandler>();
     }
 
     public ClientHandler getClientHandler(PrintWriter out) {
-        for (ClientHandler clientHandler : clientes) {
+        for (ClientHandler clientHandler : clients) {
             if (clientHandler.out.equals(out)) {
                 return clientHandler;
             }
@@ -90,12 +87,12 @@ class ClientHandler implements Runnable {
             
             in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
             out = new PrintWriter(socketClient.getOutputStream(), true);
-            clau = generarClave();
+            clau = generarClau();
             out.println("Benvingut a la sala de xat!");
             out.println("Introdueixi el seu nom:");
-            String missatgeDesxifrat = descifrarMensaje(in.readLine().getBytes(), clau);
+            String missatgeDesxifrat = desxifrarMissatge(in.readLine().getBytes(), clau);
             nomClient = missatgeDesxifrat;
-            out.println("Hola " + nomClient + "! Comenca la conversa.");
+            out.println("Hola " + nomClient + "! Comença la conversa.");
             
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
@@ -108,7 +105,7 @@ class ClientHandler implements Runnable {
                         String desti = tokens[1];
                         String missatge = tokens[2];
                         boolean destinatariTrobat = false;
-                        for (ClientHandler client : server.clientes) {
+                        for (ClientHandler client : server.clients) {
                             if (client != this && client.out != null && client.nomClient.equals(desti)) {
                                 client.out.println("[PRIVAT][" + nomClient + "]: " + missatge);
                                 out.println("[PRIVAT][" + nomClient + "]: " + missatge);
@@ -121,7 +118,7 @@ class ClientHandler implements Runnable {
                         }
                     }
                 } else if(inputLine.startsWith("/g")){
-                    for (ClientHandler client : server.clientes) {
+                    for (ClientHandler client : server.clients) {
                         if(client.nomClient == null){
                             
                         }else{
@@ -135,21 +132,17 @@ class ClientHandler implements Runnable {
                     }
                 } else if(inputLine.startsWith("/u")){
                     StringJoiner joiner = new StringJoiner(", ");
-                    for (ClientHandler client : server.clientes) {
+                    for (ClientHandler client : server.clients) {
                         if(client.nomClient == null){
-                            
                         }else{
-                                joiner.add(client.nomClient);
-                                
-                                
+                            joiner.add(client.nomClient);
                         }
                     }
                     out.println("Clients Conectats: " + joiner);
-                        
                     }
                 
             }
-            for (ClientHandler client : server.clientes) {
+            for (ClientHandler client : server.clients) {
                 if(!client.nomClient.equals(nomClient)){
                     client.out.println("El client " + nomClient + " s'ha desconnectat.");
                 }
@@ -163,19 +156,19 @@ class ClientHandler implements Runnable {
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
         }catch (NoSuchPaddingException | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-                        System.out.println("Error en desxifrar el missatge: " + e.getMessage());
-                    }
+            System.out.println("Error en desxifrar el missatge: " + e.getMessage());
+        }
     }
     
-    private String descifrarMensaje(byte[] mensajeCifrado, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    private String desxifrarMissatge(byte[] missatgeXifrat, SecretKey clau) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
-        Cipher descifrador = Cipher.getInstance("AES");
-        descifrador.init(Cipher.DECRYPT_MODE, clave);
-        byte[] mensajeDescifrado = descifrador.doFinal(mensajeCifrado);
-        return new String(mensajeDescifrado);
+        Cipher desxifrar = Cipher.getInstance("AES");
+        desxifrar.init(Cipher.DECRYPT_MODE, clau);
+        byte[] missatgeDesxifrat = desxifrar.doFinal(missatgeXifrat);
+        return new String(missatgeDesxifrat);
     }
     
-    private SecretKey generarClave() throws NoSuchAlgorithmException {
+    private SecretKey generarClau() throws NoSuchAlgorithmException {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(128);
         return keyGen.generateKey();

@@ -1,19 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package projecte;
 
-/**
- *
- * @author DAM
- */
 import java.io.*;
 import java.net.*;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -22,7 +13,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
 public class client {
-    private String nomClient;
+    //private String nomClient;
     private BufferedReader in;
     public static PrintWriter out;
     private SecretKey clau;
@@ -43,7 +34,7 @@ public class client {
             out = new PrintWriter(socket.getOutputStream(), true);
 
            
-            clau = generarClave();
+            clau = generarClau();
             // Iniciar thread per llegir els missatges del servidor
             new Thread(new Runnable() {
                 @Override
@@ -52,7 +43,7 @@ public class client {
                         String inputLine;
                         while ((inputLine = in.readLine()) != null) {
                             // Desxifrar el missatge rebu amb la clau generada
-                            String missatgeDesxifrat = descifrarMensaje(inputLine,inputLine.getBytes(), clau);
+                            String missatgeDesxifrat = desxifrarMissatge(inputLine,inputLine.getBytes(), clau);
                             System.out.println(missatgeDesxifrat);
                         }
                     } catch (IOException e) {
@@ -72,7 +63,7 @@ public class client {
                 }
 
                 // Xifrar el missatge amb la clau generada abans d'enviar-lo
-                byte[] missatgeXifrat = cifrarMensaje(inputLine, clau);
+                byte[] missatgeXifrat = xifrarMissatge(inputLine, clau);
                 out.println(new String(missatgeXifrat));
             }
 
@@ -88,25 +79,25 @@ public class client {
         }
     }
     
-    private String descifrarMensaje(String inputLine,byte[] mensajeCifrado, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+    private String desxifrarMissatge(String inputLine,byte[] missatgeXifrat, SecretKey clau) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         try{
-            Cipher descifrador = Cipher.getInstance("AES");
-            descifrador.init(Cipher.DECRYPT_MODE, clave);
-            byte[] mensajeDescifrado = descifrador.doFinal(mensajeCifrado);
-            return new String(mensajeDescifrado);
+            Cipher desxifrat = Cipher.getInstance("AES");
+            desxifrat.init(Cipher.DECRYPT_MODE, clau);
+            byte[] missatgeDesxifrat = desxifrat.doFinal(missatgeXifrat);
+            return new String(missatgeDesxifrat);
         }catch(Exception e){
             return inputLine;
         }
     }
     
-    private byte[] cifrarMensaje(String mensaje, SecretKey clave) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
-        Cipher cifrador = Cipher.getInstance("AES");
-        cifrador.init(Cipher.ENCRYPT_MODE, clave);
-        byte[] mensajeCifrado = cifrador.doFinal(mensaje.getBytes());
-        return mensajeCifrado;
+    private byte[] xifrarMissatge(String missatge, SecretKey clau) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        Cipher xifrat = Cipher.getInstance("AES");
+        xifrat.init(Cipher.ENCRYPT_MODE, clau);
+        byte[] missatgeXifrat = xifrat.doFinal(missatge.getBytes());
+        return missatgeXifrat;
     }
     
-    private SecretKey generarClave() throws NoSuchAlgorithmException {
+    private SecretKey generarClau() throws NoSuchAlgorithmException {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(128);
         return keyGen.generateKey();

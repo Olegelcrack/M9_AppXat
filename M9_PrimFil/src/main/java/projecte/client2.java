@@ -1,18 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package projecte;
 
-/**
- *
- * @author DAM
- */
 import java.io.*;
 import java.net.*;
 
 public class client2 {
-    private String nomClient;
+//    private String nomClient;
     private BufferedReader in;
     private PrintWriter out;
 
