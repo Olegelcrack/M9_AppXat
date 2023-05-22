@@ -98,7 +98,7 @@ class ClientHandler implements Runnable {
             String missatgeXifrat2 = xifrarMissatge("Hola " + nomClient + "! Comenca la conversacio.\n----------------------------\nPer enviar missatges privats : /p 'usuari' 'missatge'"
             		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia", clauPublicaClient);
             out.writeUTF(missatgeXifrat2);
-            String missatgeXifrat3 = xifrarMissatge("Per sortir del xat: /e\n----------\n", clauPublicaClient);
+            String missatgeXifrat3 = xifrarMissatge("Per sortir del xat: /e\n----------", clauPublicaClient);
             out.writeUTF(missatgeXifrat3);
             for (ClientHandler client : server.clientes) {
                 if (!client.nomClient.equals(nomClient)) {
@@ -122,7 +122,7 @@ class ClientHandler implements Runnable {
                                 // Xifrar el missatge amb la clau publica del destinatari
                                 String missatgeXifratEnviar = xifrarMissatge("[PRIVAT][" + nomClient + "]: " + missatge, client.clauPublicaClient); //Missatge que xifrem amb la publica del client destinatari
                                 client.out.writeUTF(missatgeXifratEnviar); //Enviem  el missatge xifrat al destinatari
-                                String missatgeXifratEnviar2 = xifrarMissatge("[PRIVAT][" + client.nomClient + "]: " + missatge, clauPublicaClient); //Missatge que xifrem amb la publica del qui envia el missatge
+                                String missatgeXifratEnviar2 = xifrarMissatge("\u001B[31m[PRIVAT][" + client.nomClient + "]: " + missatge + "\u001B[0m", clauPublicaClient); //Missatge que xifrem amb la publica del qui envia el missatge
                                 out.writeUTF(missatgeXifratEnviar2); //Enviem el missatge xifrat al qui envia el missatge
                                 destinatariTrobat = true; //Boolean per saber si hem trobat a l'usuari o no
                                 break;
