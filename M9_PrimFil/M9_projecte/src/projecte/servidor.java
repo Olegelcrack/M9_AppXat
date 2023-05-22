@@ -66,49 +66,49 @@ class ClientHandler implements Runnable {
             in = new DataInputStream(new DataInputStream(socketClient.getInputStream()));
             out = new DataOutputStream(socketClient.getOutputStream());
 
-            // Generar par de claves RSA
+            // Generar par de claus RSA - Privada i Pública
             KeyPairGenerator generadorRSA = KeyPairGenerator.getInstance("RSA");
             KeyPair clauRSA = generadorRSA.genKeyPair();
 
-            // Enviar clave pública al cliente
-            byte[] bytesClavePublica = clauRSA.getPublic().getEncoded();
-            clavePrivadaServidor = clauRSA.getPrivate();
+            // Enviem la clau pública del servidor al client
+            byte[] bytesClavePublica = clauRSA.getPublic().getEncoded(); //Creem la pública
+            clavePrivadaServidor = clauRSA.getPrivate(); //Creem la privada
             out.writeInt(bytesClavePublica.length);
             out.write(bytesClavePublica);
 
-            // Recibir clave pública del cliente
+            // Rebem la clau pública del client
             byte[] bytesClavePublicaCliente = new byte[in.readInt()];
             in.readFully(bytesClavePublicaCliente);
 
-            // Regenerar clave pública del cliente
+            // Regenerem la clau pública del client
             KeyFactory kf = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec x509Spec = new X509EncodedKeySpec(bytesClavePublicaCliente);
             clavePublicaCliente = kf.generatePublic(x509Spec);
 
-            // Enviar mensaje cifrado de bienvenida
+            // Enviem el missatge de benvinguda xifrat amb la clau pública del client
             String mensajeCifrado = cifrarMensaje("¡Bienvenido/a a la sala de chat!", clavePublicaCliente);
             out.writeUTF(mensajeCifrado);
 
-            // Enviar mensaje cifrado para introducir el nombre del cliente
+            //  Enviem el missatge per introduïr el nom xifrat amb la clau pública del client
             String mensajeCifrado2 = cifrarMensaje("Introduce tu nombre:", clavePublicaCliente);
             out.writeUTF(mensajeCifrado2);
 
-            // Recibir y descifrar el nombre del cliente
+            // Rebem  el nom del client xifrat amb la pública del  servidor i el desxifrem amb la privada del servidor
             String nombreCifrado = in.readUTF();
             nomClient = descifrarMensaje(nombreCifrado, clavePrivadaServidor);
 
-            // Enviar mensaje cifrado de bienvenida personalizado
+            // Enviem el missatge de benvinguda xifrat també
             String mensajeCifrado3 = cifrarMensaje("¡Hola " + nomClient + "! Comienza la conversación.", clavePublicaCliente);
             out.writeUTF(mensajeCifrado3);
 
-            String inputLine;
-            while ((inputLine = descifrarMensaje(in.readUTF(), clavePrivadaServidor)) != null) {
+            String inputLine; //Creem un string que serà al qual li asignarem lo que rebem de l'usuari
+            while ((inputLine = descifrarMensaje(in.readUTF(), clavePrivadaServidor)) != null) { //Mirem si ens envia algo i ho desxifrem
                 if (inputLine.equals("exit")) {
                     break;
                 }
-                if (inputLine.startsWith("/p")) {
+                if (inputLine.startsWith("/p")) { //Mirem si comença per /p si és aixi enviem missatge privat al usuari que ens posi
                     String[] tokens = inputLine.split(" ", 3);
-                    if (tokens.length == 3) {
+                    if (tokens.length == 3) { //Comprobem que sigui llarg de 3 el missatge enviat
                         String destinatario = tokens[1];
                         String mensaje = tokens[2];
                         boolean destinatarioEncontrado = false;
@@ -157,7 +157,7 @@ class ClientHandler implements Runnable {
                     client.out.writeUTF(mensajeCifradoEnviar);
                 }
             }
-
+            
             System.out.println("El cliente " + nomClient + " se ha desconectado.");
             String mensajeCifradoEnviar = cifrarMensaje("Fin de la sesión", clavePublicaCliente);
             out.writeUTF(mensajeCifradoEnviar);
