@@ -97,22 +97,22 @@ public class client2 {
         }
     }
 
- // Mètode per xifrar el missatge utilitzant AES
-    public String xifrarMissatge(String mensaje, PublicKey clauPublicaServidor) throws NoSuchAlgorithmException,
+    // Mètode per xifrar el missatge utilitzant AES
+    public String xifrarMissatge(String missatge, PublicKey clauPublicaServidor) throws NoSuchAlgorithmException,
 	    NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher xifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		xifradorRSA.init(Cipher.ENCRYPT_MODE, clauPublicaServidor); //Xifrem el missatge amb la pública del client
-		byte[] textoCifrado = xifradorRSA.doFinal(mensaje.getBytes()); //Obtenim el missatge amb bytes i el xifrem
-		return Base64.getEncoder().encodeToString(textoCifrado); //Pasem el missatge a string i el retornem per enviar-lo al servidor
+		byte[] textXifrat = xifradorRSA.doFinal(missatge.getBytes()); //Obtenim el missatge amb bytes i el xifrem
+		return Base64.getEncoder().encodeToString(textXifrat); //Pasem el missatge a string i el retornem per enviar-lo al servidor
 	}
     //Mètode per desxifrar el missatge que rebem del servidor amb la nostra clau privada
-    private static String desxifrarMissatge(String mensajeCifrado, PrivateKey clauPrivadaClient) {
+    private static String desxifrarMissatge(String missatgeXifrat, PrivateKey clauPrivadaClient) {
         try {
             Cipher desxifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             desxifradorRSA.init(Cipher.DECRYPT_MODE, clauPrivadaClient); //Desxifrem el missatge amb la privada
-            byte[] textoCifrado = Base64.getDecoder().decode(mensajeCifrado); // obtenim  en bytes el texte xifrat
-            byte[] textoDescifrado = desxifradorRSA.doFinal(textoCifrado); //Obtenim en bytes el desxifrat  del texte xifrat
-            return new String(textoDescifrado, "UTF-8"); //Retornem en string el texte desxifrat
+            byte[] textXifrat = Base64.getDecoder().decode(missatgeXifrat); // obtenim  en bytes el texte xifrat
+            byte[] textoDesxifrat = desxifradorRSA.doFinal(textXifrat); //Obtenim en bytes el desxifrat  del texte xifrat
+            return new String(textoDesxifrat, "UTF-8"); //Retornem en string el texte desxifrat
         } catch (Exception e) {
             System.out.println("Error al desxifrar el missatge: " + e.getMessage());
         }
