@@ -96,9 +96,10 @@ class ClientHandler implements Runnable {
 
             // Enviem el missatge de benvinguda xifrat tambe
             String missatgeXifrat2 = xifrarMissatge("Hola " + nomClient + "! Comenca la conversacio.\n----------------------------\nPer enviar missatges privats : /p 'usuari' 'missatge'"
-            		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia\n-------", clauPublicaClient);
+            		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia", clauPublicaClient);
             out.writeUTF(missatgeXifrat2);
-            
+            String missatgeXifrat3 = xifrarMissatge("Per sortir del xat: /e\n----------\n", clauPublicaClient);
+            out.writeUTF(missatgeXifrat3);
             for (ClientHandler client : server.clientes) {
                 if (!client.nomClient.equals(nomClient)) {
                     String missatgeXifratEnviar = xifrarMissatge("S'ha connectat l'usuari: " + nomClient + ".", client.clauPublicaClient);
