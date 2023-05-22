@@ -26,21 +26,21 @@ public class servidor {
 
             while (true) {
                 Socket socketClient = servidor.accept(); //Creem un socket i esperem a que un usuari es connecta
-                System.out.println("Un nuevo cliente se ha conectado: " + socketClient.getInetAddress().getHostAddress()); //Imprimim  al servidor que un client s'ha connectat
+                System.out.println("Un nou client s'ha connectat: " + socketClient.getInetAddress().getHostAddress()); //Imprimim  al servidor que un client s'ha connectat
 
                 ClientHandler clientHandler = new ClientHandler(socketClient); //Li enviem el socketClient al thread per paràmetre
                 clientes.add(clientHandler);
                 new Thread(clientHandler).start(); //Iniciem un thread nou cada cop que un usuari entra
             }
         } catch (IOException e) {
-            System.out.println("Error al establecer la conexión: " + e.getMessage());
+            System.out.println("Error al establir la connexió: " + e.getMessage());
         } finally {
             try {
                 if (servidor != null) {
                     servidor.close();
                 }
             } catch (IOException e) {
-                System.out.println("Error al cerrar la conexión: " + e.getMessage());
+                System.out.println("Error al tancar la connexió: " + e.getMessage());
             }
         }
     }
@@ -52,8 +52,8 @@ class ClientHandler implements Runnable {
     private DataInputStream in;
     private DataOutputStream out;
     private servidor server;
-    private PublicKey clavePublicaCliente;
-    private PrivateKey clavePrivadaServidor;
+    private PublicKey clauPublicaClient;
+    private PrivateKey clauPrivadaServidor;
     
     public ClientHandler(Socket socketClient) { //Creem un constructor per poder obtenir les dades del servidor
         this.socketClient = socketClient;
@@ -72,35 +72,35 @@ class ClientHandler implements Runnable {
             KeyPair clauRSA = generadorRSA.genKeyPair();
 
             // Enviem la clau pública del servidor al client
-            byte[] bytesClavePublica = clauRSA.getPublic().getEncoded(); //Creem la pública
-            clavePrivadaServidor = clauRSA.getPrivate(); //Creem la privada
-            out.writeInt(bytesClavePublica.length);
-            out.write(bytesClavePublica);
+            byte[] bytesClauPublica = clauRSA.getPublic().getEncoded(); //Creem la pública
+            clauPrivadaServidor = clauRSA.getPrivate(); //Creem la privada
+            out.writeInt(bytesClauPublica.length);
+            out.write(bytesClauPublica);
 
             // Rebem la clau pública del client
-            byte[] bytesClavePublicaCliente = new byte[in.readInt()];
-            in.readFully(bytesClavePublicaCliente);
+            byte[] bytesClauPublicaClient = new byte[in.readInt()];
+            in.readFully(bytesClauPublicaClient);
 
             // Regenerem la clau pública del client
             KeyFactory kf = KeyFactory.getInstance("RSA");
-            X509EncodedKeySpec x509Spec = new X509EncodedKeySpec(bytesClavePublicaCliente);
-            clavePublicaCliente = kf.generatePublic(x509Spec);
+            X509EncodedKeySpec x509Spec = new X509EncodedKeySpec(bytesClauPublicaClient);
+            clauPublicaClient = kf.generatePublic(x509Spec);
 
             // Enviem el missatge de benvinguda i preguntant el nom xifrat amb la clau pública del client
-            String mensajeCifrado = cifrarMensaje("Bienvengut/da a la sala de xat!\nIntrodueix el teu nom:", clavePublicaCliente);
+            String mensajeCifrado = xifrarMissatge("Benvengut/da a la sala de xat!\nIntrodueix el teu nom:", clauPublicaClient);
             out.writeUTF(mensajeCifrado);
             
             // Rebem  el nom del client xifrat amb la pública del  servidor i el desxifrem amb la privada del servidor
             String nombreCifrado = in.readUTF();
-            nomClient = descifrarMensaje(nombreCifrado, clavePrivadaServidor);
+            nomClient = desxifrarMissatge(nombreCifrado, clauPrivadaServidor);
 
             // Enviem el missatge de benvinguda xifrat també
-            String mensajeCifrado2 = cifrarMensaje("¡Hola " + nomClient + "! Comença la conversació.\n----------------------------\nPer enviar missatges privats : /p 'usuari' 'missatge'"
-            		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia\n-------", clavePublicaCliente);
+            String mensajeCifrado2 = xifrarMissatge("¡Hola " + nomClient + "! Comença la conversació.\n----------------------------\nPer enviar missatges privats : /p 'usuari' 'missatge'"
+            		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia\n-------", clauPublicaClient);
             out.writeUTF(mensajeCifrado2);
             
             String inputLine; //Creem un string que serà al qual li asignarem lo que rebem de l'usuari
-            while ((inputLine = descifrarMensaje(in.readUTF(), clavePrivadaServidor)) != null) { //Mirem si ens envia algo i ho desxifrem
+            while ((inputLine = desxifrarMissatge(in.readUTF(), clauPrivadaServidor)) != null) { //Mirem si ens envia algo i ho desxifrem
                 if (inputLine.equals("exit")) {
                     break;
                 }
@@ -113,20 +113,20 @@ class ClientHandler implements Runnable {
                         for (ClientHandler client : server.clientes) { //Recorrem  tots els clients que estan connectats
                             if (client != this && client.out != null && client.nomClient.equals(destinatario)) {//Li enviem el missatge solament al destinatari i al qui ho envia
                                 // Cifrar el mensaje con la clave pública del destinatario
-                                String mensajeCifradoEnviar = cifrarMensaje("[PRIVADO][" + nomClient + "]: " + mensaje, client.clavePublicaCliente); //Missatge que xifrem amb la pública del client destinatari
+                                String mensajeCifradoEnviar = xifrarMissatge("[PRIVADO][" + nomClient + "]: " + mensaje, client.clauPublicaClient); //Missatge que xifrem amb la pública del client destinatari
                                 client.out.writeUTF(mensajeCifradoEnviar); //Enviem  el missatge xifrat al destinatari
-                                String mensajeCifradoEnviar2 = cifrarMensaje("[PRIVADO][" + nomClient + "]: " + mensaje, clavePublicaCliente); //Missatge que xifrem amb la pública del qui envia el missatge
+                                String mensajeCifradoEnviar2 = xifrarMissatge("[PRIVADO][" + nomClient + "]: " + mensaje, clauPublicaClient); //Missatge que xifrem amb la pública del qui envia el missatge
                                 out.writeUTF(mensajeCifradoEnviar2); //Enviem el missatge xifrat al qui envia el missatge
                                 destinatarioEncontrado = true; //Boolean per saber si hem trobat a l'usuari o no
                                 break;
                             }
                         }
                         if (!destinatarioEncontrado) { //Si no el trobem enviem el següent missatge xifrat al qui envia el missatge
-                            String mensajeCifradoEnviar = cifrarMensaje("No se encontró el usuario " + destinatario, clavePublicaCliente);
+                            String mensajeCifradoEnviar = xifrarMissatge("No se encontró el usuario " + destinatario, clauPublicaClient);
                             out.writeUTF(mensajeCifradoEnviar);
                         }
                     }else {//En cas de enviar un mal format enviem el següent missatge xifrat al usuari
-                    	String mensajeCifradoEnviar = cifrarMensaje("El format ha de ser el seguent: /p 'usuari' 'missatge'", clavePublicaCliente);
+                    	String mensajeCifradoEnviar = xifrarMissatge("El format ha de ser el seguent: /p 'usuari' 'missatge'", clauPublicaClient);
                         out.writeUTF(mensajeCifradoEnviar);
                     }
                 } else if (inputLine.startsWith("/u")) { //En cas de posar /u podrem veure tots els usuaris que hi  han connectats al xat
@@ -136,12 +136,12 @@ class ClientHandler implements Runnable {
                             joiner.add(client.nomClient); //Creem un string on anem posant tots els usuaris que hi han units per després enviar un sol missatge xifrat amb tots els usuaris connectats
                         }
                     }
-                    String mensajeCifradoEnviar = cifrarMensaje("Clientes Conectados: " + joiner, clavePublicaCliente);
+                    String mensajeCifradoEnviar = xifrarMissatge("Clientes Conectados: " + joiner, clauPublicaClient);
                     out.writeUTF(mensajeCifradoEnviar);
                 } else if (inputLine != null) { //Si no posem res i sol escrivim un missatge s'enviarà a tota la resta d'usuaris el missatge xifrat amb la pública de cada un d'ells
                     for (ClientHandler client : server.clientes) {
                         if (client.nomClient != null) {
-                            String textoCifrado = cifrarMensaje("[" + nomClient + "]: " + inputLine, client.clavePublicaCliente);
+                            String textoCifrado = xifrarMissatge("[" + nomClient + "]: " + inputLine, client.clauPublicaClient);
                             client.out.writeUTF(textoCifrado); //Enviem a cada un dels usuaris el missatge xifrat
                         }
                     }
@@ -151,13 +151,13 @@ class ClientHandler implements Runnable {
             // Notifiquem als demés usuaris quan algu es desconecta
             for (ClientHandler client : server.clientes) {
                 if (!client.nomClient.equals(nomClient)) {
-                    String mensajeCifradoEnviar = cifrarMensaje("El client " + nomClient + " s'ha desconnectat.", client.clavePublicaCliente);
+                    String mensajeCifradoEnviar = xifrarMissatge("El client " + nomClient + " s'ha desconnectat.", client.clauPublicaClient);
                     client.out.writeUTF(mensajeCifradoEnviar);
                 }
             }
             
             System.out.println("El client " + nomClient + " s'ha desconectat."); //Imprimim això al servidor
-            String mensajeCifradoEnviar = cifrarMensaje("Fi de la sessió", clavePublicaCliente); //Enviem aquest missatge al client abans de desconnectar-se
+            String mensajeCifradoEnviar = xifrarMissatge("Fi de la sessió", clauPublicaClient); //Enviem aquest missatge al client abans de desconnectar-se
             out.writeUTF(mensajeCifradoEnviar);
 
             socketClient.close(); //Tanquem la connexió amb el client
@@ -167,22 +167,22 @@ class ClientHandler implements Runnable {
         }
     }
 
-    // Método para cifrar un mensaje utilizando AES
-    public String cifrarMensaje(String mensaje, PublicKey clavePublicaCliente) throws NoSuchAlgorithmException, //Funció  que cridem per xifrar el missatge amb la publica pasada per parametre
+    // Mètode  per xifrar el missatge amb AES
+    public String xifrarMissatge(String mensaje, PublicKey clauPublicaClient) throws NoSuchAlgorithmException, //Funció  que cridem per xifrar el missatge amb la publica pasada per parametre
 	    NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
-		Cipher cifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		cifradorRSA.init(Cipher.ENCRYPT_MODE, clavePublicaCliente); //Definim el mètode de xifrat
-		byte[] textoCifrado = cifradorRSA.doFinal(mensaje.getBytes()); //Xifrem el missatge
+		Cipher xifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+		xifradorRSA.init(Cipher.ENCRYPT_MODE, clauPublicaClient); //Definim el mètode de xifrat
+		byte[] textoCifrado = xifradorRSA.doFinal(mensaje.getBytes()); //Xifrem el missatge
 		return Base64.getEncoder().encodeToString(textoCifrado); //Retornem el missatge xifrat com un string
 	}
 
-    // Método para descifrar un mensaje utilizando AES
-    private static String descifrarMensaje(String mensajeCifrado, PrivateKey clavePrivadaServidor2) { //Funció  que cridem per desxifrar els missatges que ens envia l'usuari amb la privada del servidor pasada per parametre
+    // Mètode per desxifrar el missatge amb AES
+    private static String desxifrarMissatge(String mensajeCifrado, PrivateKey clauPrivadaServidor) { //Funció  que cridem per desxifrar els missatges que ens envia l'usuari amb la privada del servidor pasada per parametre
         try {
-            Cipher cifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding"); 
-            cifradorRSA.init(Cipher.DECRYPT_MODE, clavePrivadaServidor2); //Definim el mètode de desxifrat (el mateix que el de xifrat)
+            Cipher desxifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding"); 
+            desxifradorRSA.init(Cipher.DECRYPT_MODE, clauPrivadaServidor); //Definim el mètode de desxifrat (el mateix que el de xifrat)
             byte[] textoCifrado = Base64.getDecoder().decode(mensajeCifrado);
-            byte[] textoDescifrado = cifradorRSA.doFinal(textoCifrado); //Desxifrem el missatge i obtenim bytes
+            byte[] textoDescifrado = desxifradorRSA.doFinal(textoCifrado); //Desxifrem el missatge i obtenim bytes
             return new String(textoDescifrado, "UTF-8"); //Pasem els bytes a string
         } catch (Exception e) {
             System.out.println("Error al descifrar el mensaje: " + e.getMessage());
