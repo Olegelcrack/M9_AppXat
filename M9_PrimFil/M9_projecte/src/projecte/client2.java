@@ -15,7 +15,7 @@ public class client2 {
     private PublicKey clauPublicaServidor;
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-        String host = "localhost"; //Posem la ip del servidor
+        String host = "localhost"; //Posem la ip del client
         int port = 12345; //El port del servidor
         client2 clientXat = new client2();
 
