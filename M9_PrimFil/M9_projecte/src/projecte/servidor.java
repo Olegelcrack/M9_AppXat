@@ -99,6 +99,12 @@ class ClientHandler implements Runnable {
             		+ "\nPer mostrar els usuaris connectats: /u\nPer enviar missatges simplement escriut el missatge i envia\n-------", clauPublicaClient);
             out.writeUTF(mensajeCifrado2);
             
+            for (ClientHandler client : server.clientes) {
+                if (!client.nomClient.equals(nomClient)) {
+                    String mensajeCifradoEnviar = xifrarMissatge("S'ha connectat l'usuari: " + nomClient + ".", client.clauPublicaClient);
+                    client.out.writeUTF(mensajeCifradoEnviar);
+                }
+            }
             String inputLine; //Creem un string que serà al qual li asignarem lo que rebem de l'usuari
             while ((inputLine = desxifrarMissatge(in.readUTF(), clauPrivadaServidor)) != null) { //Mirem si ens envia algo i ho desxifrem
                 if (inputLine.equals("exit")) {
