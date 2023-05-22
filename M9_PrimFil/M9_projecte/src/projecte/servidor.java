@@ -22,13 +22,13 @@ public class servidor {
 
         try {
             servidor = new ServerSocket(port);
-            System.out.println("El servidor est� escoltant al port: " + port);
+            System.out.println("El servidor esta escoltant al port: " + port);
 
             while (true) {
                 Socket socketClient = servidor.accept(); //Creem un socket i esperem a que un usuari es connecta
                 System.out.println("Un nou client s'ha connectat: " + socketClient.getInetAddress().getHostAddress()); //Imprimim  al servidor que un client s'ha connectat
 
-                ClientHandler clientHandler = new ClientHandler(socketClient); //Li enviem el socketClient al thread per par�metre
+                ClientHandler clientHandler = new ClientHandler(socketClient); //Li enviem el socketClient al thread per parametre
                 clientes.add(clientHandler);
                 new Thread(clientHandler).start(); //Iniciem un thread nou cada cop que un usuari entra
             }
@@ -81,12 +81,12 @@ class ClientHandler implements Runnable {
             byte[] bytesClauPublicaClient = new byte[in.readInt()];
             in.readFully(bytesClauPublicaClient);
 
-            // Regenerem la clau p�blica del client
+            // Regenerem la clau publica del client
             KeyFactory kf = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec x509Spec = new X509EncodedKeySpec(bytesClauPublicaClient);
             clauPublicaClient = kf.generatePublic(x509Spec);
 
-            // Enviem el missatge de benvinguda i preguntant el nom xifrat amb la clau p�blica del client
+            // Enviem el missatge de benvinguda i preguntant el nom xifrat amb la clau publica del client
             String missatgeXifrat = xifrarMissatge("Benvengut/da a la sala de xat!\nIntrodueix el teu nom:", clauPublicaClient);
             out.writeUTF(missatgeXifrat);
             
@@ -107,7 +107,7 @@ class ClientHandler implements Runnable {
             }
             String inputLine; //Creem un string que sera al qual li asignarem lo que rebem de l'usuari
             while ((inputLine = desxifrarMissatge(in.readUTF(), clauPrivadaServidor)) != null) { //Mirem si ens envia algo i ho desxifrem
-                if (inputLine.equals("exit")) {
+            	if (inputLine.equals("/e")) {
                     break;
                 }
                 if (inputLine.startsWith("/p")) { //Mirem si comenca per /p si es aixi enviem missatge privat al usuari que ens posi
@@ -163,7 +163,7 @@ class ClientHandler implements Runnable {
             }
             
             System.out.println("El client " + nomClient + " s'ha desconectat."); //Imprimim aixo al servidor
-            String missatgeXifratEnviar=  xifrarMissatge("Fi de la sessi�", clauPublicaClient); //Enviem aquest missatge al client abans de desconnectar-se
+            String missatgeXifratEnviar=  xifrarMissatge("Fi de la sessio", clauPublicaClient); //Enviem aquest missatge al client abans de desconnectar-se
             out.writeUTF(missatgeXifratEnviar);
 
             socketClient.close(); //Tanquem la connexio amb el client
