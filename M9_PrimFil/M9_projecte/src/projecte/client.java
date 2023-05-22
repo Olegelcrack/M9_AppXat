@@ -6,7 +6,6 @@ import java.security.spec.*;
 import java.util.Base64;
 
 import javax.crypto.*;
-import javax.crypto.spec.*;
 
 public class client {
     private String nomClient;
@@ -30,23 +29,23 @@ public class client {
             in = new DataInputStream(new DataInputStream(socket.getInputStream()));
             out = new DataOutputStream(socket.getOutputStream());
 
-            // Generem un par de claus una pública i una privada per desxifrar el que ens retorni el servidor
+            // Generem un par de claus una pï¿½blica i una privada per desxifrar el que ens retorni el servidor
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             keyPairGenerator.initialize(2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             PublicKey clauPublicaClient = keyPair.getPublic();
             PrivateKey clauPrivadaClient = keyPair.getPrivate();
 
-            // Enviem la nostra clau publica al client per a que així pugui xifrar els missatges amb la nostra clau pública
+            // Enviem la nostra clau publica al client per a que aixï¿½ pugui xifrar els missatges amb la nostra clau pï¿½blica
             byte[] bytesClauPublicaClient = clauPublicaClient.getEncoded();
             out.writeInt(bytesClauPublicaClient.length);
             out.write(bytesClauPublicaClient);
 
-            // Rebem la clau pública del servidor per poder xifrar tot el que li enviem amb la seva clau pública
+            // Rebem la clau pï¿½blica del servidor per poder xifrar tot el que li enviem amb la seva clau pï¿½blica
             byte[] bytesClauPublicaServidor = new byte[in.readInt()];
             in.readFully(bytesClauPublicaServidor);
 
-            // Regenerem la clau pública del servidor
+            // Regenerem la clau pï¿½blica del servidor
             KeyFactory kf = KeyFactory.getInstance("RSA");
             X509EncodedKeySpec x509Spec = new X509EncodedKeySpec(bytesClauPublicaServidor);
             clauPublicaServidor = kf.generatePublic(x509Spec);
@@ -78,41 +77,41 @@ public class client {
                     break;
                 }
 
-                // Xifrem  el missatge que escrivim amb la pública del servidor abans d'enviar el missatge
+                // Xifrem  el missatge que escrivim amb la pï¿½blica del servidor abans d'enviar el missatge
                 String missatgeXifrat = xifrarMissatge(inputLine, clauPublicaServidor);
 
                 // Enviar el missatge xifrat al servidor
                 out.writeUTF(missatgeXifrat);
             }
 
-            // Tanquem la connexió amb el servidor
+            // Tanquem la connexiï¿½ amb el servidor
             socket.close();
-            //System.out.println("Conexió tancada.");
+            //System.out.println("Conexiï¿½ tancada.");
         } catch (UnknownHostException e) {
             System.out.println("Servidor desconegut: " + host + " al port: " + port);
         } catch (IOException e) {
-            System.out.println("Error al establir la  connexió: " + e.getMessage());
+            System.out.println("Error al establir la  connexiï¿½: " + e.getMessage());
         } catch (InvalidKeySpecException e) {
-            System.out.println("Error al generar la clau pública: " + e.getMessage());
+            System.out.println("Error al generar la clau pï¿½blica: " + e.getMessage());
         }
     }
 
- // Mètode per xifrar el missatge utilitzant AES
+ // Mï¿½tode per xifrar el missatge utilitzant AES
     public String xifrarMissatge(String missatge, PublicKey clauPublicaServidor) throws NoSuchAlgorithmException,
 	    NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 		Cipher xifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-		xifradorRSA.init(Cipher.ENCRYPT_MODE, clauPublicaServidor); //Xifrem el missatge amb la pública del client
+		xifradorRSA.init(Cipher.ENCRYPT_MODE, clauPublicaServidor); //Xifrem el missatge amb la pï¿½blica del servidor
 		byte[] textXifrat = xifradorRSA.doFinal(missatge.getBytes()); //Obtenim el missatge amb bytes i el xifrem
 		return Base64.getEncoder().encodeToString(textXifrat); //Pasem el missatge a string i el retornem per enviar-lo al servidor
-	}
-    //Mètode per desxifrar el missatge que rebem del servidor amb la nostra clau privada
+    }
+    //Mï¿½tode per desxifrar el missatge que rebem del servidor amb la nostra clau privada
     private static String desxifrarMissatge(String missatgeXifrat, PrivateKey clauPrivadaClient) {
         try {
             Cipher desxifradorRSA = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            desxifradorRSA.init(Cipher.DECRYPT_MODE, clauPrivadaClient); //Desxifrem el missatge amb la privada
+            desxifradorRSA.init(Cipher.DECRYPT_MODE, clauPrivadaClient); //Desxifrem el missatge amb la privada del client
             byte[] textXifrat = Base64.getDecoder().decode(missatgeXifrat); // obtenim  en bytes el texte xifrat
-            byte[] textoDesxifrat = desxifradorRSA.doFinal(textXifrat); //Obtenim en bytes el desxifrat  del texte xifrat
-            return new String(textoDesxifrat, "UTF-8"); //Retornem en string el texte desxifrat
+            byte[] textDesxifrat = desxifradorRSA.doFinal(textXifrat); //Obtenim en bytes el desxifrat del texte xifrat
+            return new String(textDesxifrat, "UTF-8"); //Retornem en string el texte desxifrat
         } catch (Exception e) {
             System.out.println("Error al desxifrar el missatge: " + e.getMessage());
         }

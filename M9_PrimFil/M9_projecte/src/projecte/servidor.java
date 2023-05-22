@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.StringJoiner;
 import javax.crypto.*;
-import javax.crypto.spec.*;
-import javax.crypto.interfaces.*;
 
 public class servidor {
     public static ArrayList<ClientHandler> clientes;
@@ -181,7 +179,7 @@ class ClientHandler implements Runnable {
 		xifradorRSA.init(Cipher.ENCRYPT_MODE, clauPublicaClient); //Definim el metode de xifrat
 		byte[] textXifrat = xifradorRSA.doFinal(missatge.getBytes()); //Xifrem el missatge
 		return Base64.getEncoder().encodeToString(textXifrat); //Retornem el missatge xifrat com un string
-	}
+    }
 
     // Metode per desxifrar el missatge amb AES
     private static String desxifrarMissatge(String missatgeXifrat, PrivateKey clauPrivadaServidor) { //Funcio  que cridem per desxifrar els missatges que ens envia l'usuari amb la privada del servidor pasada per parametre
